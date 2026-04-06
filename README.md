@@ -74,6 +74,12 @@ EnvManager/
 - There is currently no automated test target.
 - The repository includes a GitHub Actions workflow that verifies the project builds on macOS.
 
+## Releasing
+
+The recommended release path is a `Developer ID`-signed, notarized `DMG` distributed outside the Mac App Store.
+
+Release docs are in [RELEASE.md](RELEASE.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
