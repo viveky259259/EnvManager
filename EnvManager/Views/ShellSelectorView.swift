@@ -5,48 +5,76 @@ struct ShellSelectorView: View {
     @Binding var selectedConfigFile: String
 
     var body: some View {
-        HStack(spacing: 16) {
-            HStack {
-                Text("Shell:")
-                    .foregroundColor(.secondary)
-
-                Picker("Shell", selection: $selectedShell) {
-                    ForEach(ShellType.allCases) { shell in
-                        Text(shell.displayName).tag(shell)
-                    }
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Shell Target")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(FloeTheme.inkPrimary)
+                    Text("Choose the shell family and the config file EnvManager should inspect and update.")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(FloeTheme.inkSecondary)
                 }
-                .pickerStyle(.menu)
-                .frame(width: 100)
+
+                Spacer(minLength: 0)
+
+                FloeInfoPill(
+                    title: FileManager.default.fileExists(atPath: selectedConfigFile) ? "Existing file" : "File will be created",
+                    systemImage: FileManager.default.fileExists(atPath: selectedConfigFile) ? "checkmark.circle.fill" : "plus.circle",
+                    tint: FileManager.default.fileExists(atPath: selectedConfigFile) ? FloeTheme.secondary : FloeTheme.accent
+                )
             }
 
-            HStack {
-                Text("Config:")
-                    .foregroundColor(.secondary)
-
-                Picker("Config File", selection: $selectedConfigFile) {
-                    ForEach(selectedShell.configFiles, id: \.self) { file in
-                        Text(displayPath(file)).tag(file)
+            HStack(spacing: 12) {
+                ForEach(ShellType.allCases) { shell in
+                    Button {
+                        selectedShell = shell
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(shell.displayName)
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            Text((shell.primaryConfigFile as NSString).lastPathComponent)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(selectedShell == shell ? Color.white.opacity(0.8) : FloeTheme.inkSecondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .buttonStyle(FloeSelectableChipStyle(isSelected: selectedShell == shell))
                 }
-                .pickerStyle(.menu)
-                .frame(minWidth: 150)
             }
 
-            Spacer()
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Configuration file")
+                    .font(.system(size: 12, weight: .bold))
+                    .tracking(0.8)
+                    .foregroundStyle(FloeTheme.inkTertiary)
 
-            if FileManager.default.fileExists(atPath: selectedConfigFile) {
-                Label("File exists", systemImage: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                    .font(.caption)
-            } else {
-                Label("File will be created", systemImage: "plus.circle")
-                    .foregroundColor(.orange)
-                    .font(.caption)
+                HStack(spacing: 10) {
+                    Image(systemName: "folder")
+                        .foregroundStyle(FloeTheme.primary)
+                    Picker("Config File", selection: $selectedConfigFile) {
+                        ForEach(selectedShell.configFiles, id: \.self) { file in
+                            Text(displayPath(file)).tag(file)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(FloeTheme.background.opacity(0.92))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(FloeTheme.border.opacity(0.75), lineWidth: 1)
+                )
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .floeCard()
         .onChange(of: selectedShell) { newShell in
             selectedConfigFile = newShell.primaryConfigFile
         }
